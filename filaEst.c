@@ -6,13 +6,11 @@ struct aluno {
     char nome[50];
 };
 
-// Estrutura de um nó da fila
 struct node {
     struct aluno dados;
     struct node *prox;
 };
 
-// Estrutura do primeiro e último nós da fila
 struct fila {
     struct node *inicio;
     struct node *fim;
@@ -64,48 +62,57 @@ int tamanhoFila(FILA *f) {
     return tam;
 }
 
-// Adicionando nó do tipo 'aluno' na fila
+int vaziaFila(FILA *f) {
+    if (f == NULL || f->inicio == NULL)
+        return 0; // ESTÁ VAZIA
+    else
+        return 1;
+}
+
 int enQueue(FILA *f, struct aluno al) {
 
     NODE *no = (NODE *) malloc(sizeof(NODE));
     no->dados = al;
     no->prox = NULL;
-    if (f == NULL || no == NULL) // FILA INVÁLIDA E ERRO AO ALOCAR NÓ
+    if (no == NULL || f == NULL)
         return 1;
     
-    if (f->inicio == NULL) { // FILA VAZIA
+    if (f->fim == NULL) { //ANALISANDO SE A LISTA É VAZIA (NUMA FILA INSERE-SE AO FINAL)
         f->inicio = no;
+        return 0;
     } else {
         f->fim->prox = no;
+        f->fim = no;
+        return 0;
+        /* NODE *noAux;
+        while (f->inicio != NULL) {
+            noAux = f->inicio;
+            f->inicio = f->inicio->prox;
+        }
+        noAux->prox = no; */
     }
-    f->fim = no;
-    return 0;
 }
 
 int deQueue(FILA *f) {
 
-    if (f == NULL || f->inicio == NULL) //FILA INVÁLIDA OU VAZIA
-        return 1;
-        
-    NODE *noAux = f->inicio;
-    // A REMOÇÃO CONSISTE NA LINHA SEGUINTE:
-    f->inicio = f->inicio->prox;
-
-    if (f->inicio == NULL) //LISTA ESVAZIOU-SE
-        f->fim = NULL;
-
-    free(noAux);
-    return 0;
-}
-
-/* PARA UMA FILA SÓ É POSSÍVEL 
-* CONSULTAR O PRIMEIRO NÓ, A LÓGICA DE
-* CONSULTAR TODOS OS NÓS SERVE PARA UMA FILA */
-int exibeFila(FILA *f, struct aluno *al) {
     if (f == NULL || f->inicio == NULL)
         return 1;
+    else {
+        NODE *noAux = f->inicio;
+        f->inicio = f->inicio->prox;
 
-    *al = f->inicio->dados;
+        if (f->inicio == NULL) //LISTA ESVAZIOU-SE
+            f->fim = NULL;
+        free(noAux);
+        return 0;
+    }
+}
+
+int exibeFila(NODE *no, struct aluno *al) {
+    if (no == NULL)
+        return 1;
+
+    *al = no->dados;
     return 0;
 }
 
@@ -116,14 +123,14 @@ int menu(void) {
     printf("1. LIBERAR MEMORIA\n");
     printf("2. INSERIR NA FILA\n");
     printf("3. REMOVER DA FILA\n");
-    printf("4. EXIBIR PRIMEIRO NO\n");
+    printf("4. EXIBIR FILA\n");
     printf("OPCAO: ");
     scanf("%1d", &opcao);
 
     return opcao;
 }
 
-void dadosAluno(struct aluno *al) {
+void dadosAl(struct aluno *al) {
     printf("\nINFORME OS DADOS DO ALUNO: \n");
     
     printf("NOME: ");
@@ -150,7 +157,7 @@ void opcao(FILA *f, int op) {
         liberaFila(f);
         break;
     case 2:
-        dadosAluno(&al);
+        dadosAl(&al);
         teste = enQueue(f, al);
         if (teste == 0)
             printf("INSERIDO!\n");
@@ -165,14 +172,16 @@ void opcao(FILA *f, int op) {
             printf("NAO REMOVIDO!\n");
         break;
     case 4:
-        exibeFila(f, &al);
-        if (teste == 0)
-            printf("1. %s", al.nome);
-        else
-            printf("LISTA VAZIA!\n");
+        if (f->inicio == NULL) {
+            printf("FILA VAZIA!\n");
+            break;
+        } else {
+            al = f->inicio->dados;
+            printf("%d. %s", count, al.nome);
+        }   
         break;
+
     default:
-        liberaFila(f);
         printf("OPCAO INVALIDA!\n");
         break;
     }
@@ -186,7 +195,6 @@ int main(void) {
         opcao(f, op);
     } while (op);
     
-    liberaFila(f);
     free(f);
     return 0;
 }
